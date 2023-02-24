@@ -1,0 +1,36 @@
+version: '3.7'
+volumes:
+  db:
+    driver: local
+networks:
+  wallet-net:
+    driver: bridge
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: 'app'
+    ports:
+      - "80:80"
+    restart: always
+    networks:
+      - wallet-net
+    env_file:
+      - ./config/config.env
+    depends_on:
+      - db
+    links:
+      - db
+  db:
+    image: mysql:8.0
+    restart: always
+    networks:
+      - wallet-net
+    ports:
+      - '3306:3306'
+    env_file:
+      - ./config/config.env
+    volumes:
+      - db:/var/lib/mysql
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/init.sql
