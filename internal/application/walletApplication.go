@@ -1,6 +1,9 @@
 package application
 
-import "wallet/internal/domain/wallet"
+import (
+	"time"
+	"wallet/internal/domain/wallet"
+)
 
 type WalletApplication struct {
 	WalletRepository wallet.WalletRepository
@@ -23,7 +26,18 @@ func (a WalletApplication) Add(userID, amount int64) (int64, error) {
 		return 0, err
 	}
 
+	balance, err := a.WalletRepository.GetBalance(userIDValue)
+	if err != nil {
+		return 0, err
+	}
+
+	// TODO: Add SQL Transaction
+	if balance-amount < 0 {
+		return 0, wallet.InsufficientBalanceError
+	}
+
 	walletChange := wallet.NewWalletChange(userIDValue, amountValue)
+
 	referenceID, err := a.WalletRepository.Add(walletChange)
 	if err != nil {
 		return 0, err
@@ -39,4 +53,8 @@ func (a WalletApplication) GetBalance(userID int64) (int64, error) {
 	}
 
 	return a.WalletRepository.GetBalance(userIDValue)
+}
+
+func (a WalletApplication) CalculateTotalAmount() (int64, error) {
+	return a.WalletRepository.GetTotalAmountAfter(time.Now().Add(-1 * 24 * time.Hour))
 }

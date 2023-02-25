@@ -5,6 +5,7 @@ import (
 	"wallet/config"
 	"wallet/internal/application"
 	"wallet/internal/infrastructure/persistance"
+	"wallet/internal/interface/cron"
 	"wallet/internal/interface/http"
 )
 
@@ -16,5 +17,6 @@ func main() {
 	}
 
 	walletApplication := application.NewWalletApplication(walletRepository)
+	go cron.StartCron(walletApplication)
 	http.StartHTTP(walletApplication)
 }
