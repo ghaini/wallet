@@ -1,6 +1,7 @@
 package persistance
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"time"
@@ -45,7 +46,11 @@ func (w walletMySQLRepository) GetBalance(id wallet.UserID) (int64, error) {
 		Amount float64 `db:"amount"`
 	}{}
 
-	err := w.DB.Get(&amount, "SELECT SUM(amount) amount FROM wallet_changes GROUP BY user_id;")
+	err := w.DB.Get(&amount, "SELECT SUM(amount) amount FROM wallet_changes WHERE user_id = ? GROUP BY user_id;", id)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+
 	if err != nil {
 		return 0, err
 	}
@@ -59,6 +64,10 @@ func (w walletMySQLRepository) GetTotalAmountAfter(after time.Time) (int64, erro
 	}{}
 
 	err := w.DB.Get(&amount, "SELECT SUM(amount) total_amount FROM wallet_changes WHERE ? < created_at;", after.Format("2006-01-02 15:04:05"))
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+
 	if err != nil {
 		return 0, err
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 func StartHTTP(walletApplication application.WalletApplication) {
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 	g := gin.Default()
 	handler := NewHandler(walletApplication)
 	router(g, handler)
